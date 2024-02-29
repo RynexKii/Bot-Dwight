@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require("discord.js");
 const { QuickDB } = require("quick.db");
 const { join } = require("path")
 
@@ -19,7 +19,7 @@ module.exports = {
     .addSubcommand(subcommand =>
       subcommand
         .setName("config")
-        .setDescription("Selecione os canais que você deseja adicionar ou removidos do banco de dados")
+      .setDescription("Selecione os canais que você deseja adicionar ou remover do banco de dados")
         .addStringOption((option) =>
           option
             .setName("adicionar-remover")
@@ -30,7 +30,12 @@ module.exports = {
         .addChannelOption((option) => option
         .setName("channel")
         .setDescription("Escolha o canal")
-        .setRequired(true))),
+        .setRequired(true)))
+    .addSubcommand(subcommand =>
+      subcommand
+        .setName("channels")
+        .setDescription('Ver todos os canais que não estão ativos no sistema de Membro Ativo')
+      ),
 
   async execute(interaction) {
 
@@ -103,6 +108,27 @@ module.exports = {
         .setColor("#ff0000")
         await interaction.reply({ embeds: [removeSuccess], ephemeral: true })
       }
+    } else if (interaction.options.getSubcommand() === "channels") {
+      const getChannelsDatabase = await database.activeMember.get('channelsId')
+      let channelsId = ''
+
+      // Verifica se a database tem algum valor ou se o Array criada nela esta vazio
+      if (getChannelsDatabase === null || getChannelsDatabase.length === 0) {
+        channelsId = '`Nenhum canal definido`'
+      } else {
+        // Percore todos os ID's do Array e armazena eles na variável channelsId passando com a formatação do Discord para mensionar canal
+        getChannelsDatabase.forEach(channel => {
+          channelsId += `<#${channel}> `
+        });
+      }
+
+      const embed = new EmbedBuilder()
+        .setTitle('Canais registrados no banco de dados')
+        .setDescription(`* Canais: ${channelsId}\n\n**Esses canais não contaram pontos para o Membro Ativo**`)
+        .setColor('#ffffff')
+
+
+      await interaction.reply({ embeds: [embed], ephemeral: true })
     }
   },
 };
