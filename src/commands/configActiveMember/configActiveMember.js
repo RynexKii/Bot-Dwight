@@ -35,7 +35,8 @@ module.exports = {
       subcommand
         .setName("channels")
         .setDescription('Ver todos os canais que não estão ativos no sistema de Membro Ativo')
-      ),
+      )
+      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(interaction) {
 
