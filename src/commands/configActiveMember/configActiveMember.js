@@ -7,7 +7,7 @@ const rootdir = process.cwd(); // Pega a pasta atual do arquivo principal que ta
 
 // Cria uma tabela para salvar os ID's dos canais
 const database = {
-  activeMember: new QuickDB({ table: "channelsId", filePath: join(rootdir, "database/activeMember.sqlite") }),
+  activeMember: new QuickDB({ table: "channelsID", filePath: join(rootdir, "database/activeMember.sqlite") }),
 };
 
 // prettier-ignored
@@ -50,14 +50,16 @@ module.exports = {
       const getChannelOption = interaction.options._hoistedOptions[1].value;
   
       // Pega os ID's dos canais que estão inseridos na database
-      const getChannelDatabase = await database.activeMember.get("channelsId");
+      // await (await database.activeMember.tableAsync('memberPts')).add(`${memberID}.points`, getRandomNumber(1, 5));
+
+      const getChannelDatabase = await (await database.activeMember.tableAsync('channelsID')).get("channels");
   
       // Função feita para adicionar os canais na database e responder no chat com uma mensagem de sucesso
       async function addChanel() {
         const addSuccess = new EmbedBuilder()
           .setDescription(`### <:add:1212567044428533760> O canal <#${getChannelOption}>  foi adicionado com sucesso!`)
           .setColor("#15ff00");
-        await database.activeMember.push("channelsId", getChannelOption);
+        await (await database.activeMember.tableAsync('channelsID')).push("channels", getChannelOption);
         return await interaction.reply({ embeds: [addSuccess], ephemeral: true });
       }
   
@@ -103,29 +105,29 @@ module.exports = {
           return await interaction.reply({ embeds: [notChannel], ephemeral: true });
         }
         // Pega o canal que foi enviado pelo slash command e remove da database e retorna uma mensagem de sucesso
-        await database.activeMember.pull("channelsId", getChannelOption)
+        await (await database.activeMember.tableAsync('channelsID')).pull("channels", getChannelOption)
         const removeSuccess = new EmbedBuilder()
         .setDescription(`### <:remove:1212567045695213629> O canal <#${getChannelOption}>  foi removido com sucesso!`)
         .setColor("#ff0000")
         await interaction.reply({ embeds: [removeSuccess], ephemeral: true })
       }
     } else if (interaction.options.getSubcommand() === "channels") {
-      const getChannelsDatabase = await database.activeMember.get('channelsId')
-      let channelsId = ''
+      const getChannelsDatabase = await (await database.activeMember.tableAsync('channelsID')).get('channels')
+      let messageChannels = ''
 
       // Verifica se a database tem algum valor ou se o Array criada nela esta vazio
       if (getChannelsDatabase === null || getChannelsDatabase.length === 0) {
-        channelsId = '`Nenhum canal definido`'
+        messageChannels = '`Nenhum canal definido`'
       } else {
-        // Percore todos os ID's do Array e armazena eles na variável channelsId passando com a formatação do Discord para mensionar canal
+        // Percore todos os ID's do Array e armazena eles na variável messageChannels passando com a formatação do Discord para mensionar canal
         getChannelsDatabase.forEach(channel => {
-          channelsId += `<#${channel}> `
+          messageChannels += `<#${channel}> `
         });
       }
 
       const embed = new EmbedBuilder()
         .setTitle('Canais registrados no banco de dados')
-        .setDescription(`* Canais: ${channelsId}\n\n**Esses canais não contaram pontos para o Membro Ativo**`)
+        .setDescription(`* Canais: ${messageChannels}\n\n**Esses canais não contaram pontos para o Membro Ativo**`)
         .setColor('#ffffff')
 
 
