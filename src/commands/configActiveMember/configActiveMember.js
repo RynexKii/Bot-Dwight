@@ -50,8 +50,6 @@ module.exports = {
       const getChannelOption = interaction.options._hoistedOptions[1].value;
   
       // Pega os ID's dos canais que estão inseridos na database
-      // await (await database.activeMember.tableAsync('memberPts')).add(`${memberID}.points`, getRandomNumber(1, 5));
-
       const getChannelDatabase = await (await database.activeMember.tableAsync('channelsID')).get("channels");
   
       // Função feita para adicionar os canais na database e responder no chat com uma mensagem de sucesso
