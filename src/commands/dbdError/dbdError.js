@@ -3,8 +3,12 @@ const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 // prettier-ignore
 module.exports = {
   data: new SlashCommandBuilder()
-  .setName("dbd-erros")
-  .setDescription("Ver possiveis soluções de erro no Dead by Daylight!"),
+  .setName("dead-by-daylight")
+  .setDescription("Aqui estão alguns comandos úteis que podem facilitar o seu trabalho")
+  .addSubcommand(subcommand =>
+    subcommand
+    .setName("pc-error")
+    .setDescription("Explore potenciais resoluções para problemas no Dead by Daylight no PC.")),
   
   async execute(interaction) {
     const errorEmbed = new EmbedBuilder()
