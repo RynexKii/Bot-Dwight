@@ -1,6 +1,8 @@
 const { QuickDB } = require("quick.db");
 const { join } = require("path");
 const client = require("../../index.js");
+const { EmbedBuilder } = require("discord.js");
+const { memberActiveRoleId } = require("../../config.json");
 
 const rootdir = process.cwd(); // Pega a pasta atual do arquivo principal que ta sendo executado
 
@@ -102,4 +104,37 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
   if (newState.channelId === null) {
     addVoicePoints();
   } // Saiu do canal
+});
+
+// Temporariamente (Pretendo mudar) detecta quando o usuário faz uma ação em um canal de voz para adicionar o cargo de Membro Ativo
+client.on("voiceStateUpdate", async (interaction) => {
+  // Pegando o ID do usuário
+  const userId = interaction.member.id;
+
+  // Pegando o total dos pontos do usuário da tabela memberPoints
+  const getPointsDatabase = await (await database.activeMember.tableAsync("memberPoints")).get(`${userId}.points`);
+
+  // Caso o usuário for um bot ele simplesmente não adiciona pontos parando aqui a execução
+  if (interaction.member.user.bot) return;
+
+  // Caso o usuário já tenha o cargo Membro Ativo que está sendo importado do config.json ele apenas para a execução
+  if (interaction.member.roles.cache.has(memberActiveRoleId)) return;
+
+  // Caso o usuário ainda não tenha sua pontuação ele para a execução aqui
+  if (getPointsDatabase === null) return;
+
+  // Caso o usuário atinja mais de 1500 pontos ele recebe o cargo de Membro Ativo
+  if (getPointsDatabase >= 1500) {
+    // Adicionando a role específica do config.json
+    interaction.member.roles.add(memberActiveRoleId);
+
+    const embedAddRole = new EmbedBuilder()
+      .setDescription(
+        "Parabéns! Você alcançou o cargo de **Membro Ativo** em nossa comunidade **Dead by Daylight Brasil**\n\nLembre-se de que em todo dia 1º do mês o cargo será redefinido e você precisará conquistar novamente sua posição como **Membro Ativo.** Continue participando e contribuindo para a comunidade para manter seu status!"
+      )
+      .setColor("#ffffff");
+
+    // Enviando a mensagem embedAddRole por privado
+    client.users.send(userId, { embeds: [embedAddRole] });
+  }
 });
