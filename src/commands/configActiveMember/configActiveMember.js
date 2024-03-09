@@ -11,7 +11,7 @@ const database = {
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("active-member")
+    .setName("membro-ativo")
     .setDescription("Comando usado para configurar o sistema de Membro Ativo")
     .addSubcommand((subcommand) =>
       subcommand
