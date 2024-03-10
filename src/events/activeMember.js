@@ -125,17 +125,20 @@ client.on("voiceStateUpdate", async (interaction) => {
 
   // Caso o usuário atinja mais de 1500 pontos ele recebe o cargo de Membro Ativo
   if (getPointsDatabase >= 1500) {
-    // Adicionando a role específica do config.json
-    interaction.member.roles.add(memberActiveRoleId);
+    // Caso a DM for privada não vai parar o bot
+    try {
+      // Adicionando a role específica do config.json
+      interaction.member.roles.add(memberActiveRoleId);
 
-    const embedAddRole = new EmbedBuilder()
-      .setDescription(
-        "Parabéns! Você alcançou o cargo de **Membro Ativo** em nossa comunidade **Dead by Daylight Brasil**\n\nLembre-se de que em todo dia 1º do mês o cargo será redefinido e você precisará conquistar novamente sua posição como **Membro Ativo.** Continue participando e contribuindo para a comunidade para manter seu status!"
-      )
-      .setColor("#ffffff");
+      const embedAddRole = new EmbedBuilder()
+        .setDescription(
+          "Parabéns! Você alcançou o cargo de **Membro Ativo** em nossa comunidade **Dead by Daylight Brasil**\n\nLembre-se de que em todo dia 1º do mês o cargo será redefinido e você precisará conquistar novamente sua posição como **Membro Ativo.** Continue participando e contribuindo para a comunidade para manter seu status!"
+        )
+        .setColor("#ffffff");
 
-    // Enviando a mensagem embedAddRole por privado
-    client.users.send(userId, { embeds: [embedAddRole] });
+      // Enviando a mensagem embedAddRole por privado
+      await client.users.send(userId, { embeds: [embedAddRole] });
+    } catch {}
   }
 });
 
@@ -158,16 +161,19 @@ client.on("messageCreate", async (interaction) => {
 
   // Caso o usuário atinja mais de 1500 pontos ele recebe o cargo de Membro Ativo
   if (getPointsDatabase >= 1500) {
-    // Adicionando a role específica do config.json
-    interaction.member.roles.add(memberActiveRoleId);
+    // Caso a DM for privada não vai parar o bot
+    try {
+      // Adicionando a role específica do config.json
+      interaction.member.roles.add(memberActiveRoleId);
 
-    const embedAddRole = new EmbedBuilder()
-      .setDescription(
-        "Parabéns! Você alcançou o cargo de **Membro Ativo** em nossa comunidade **Dead by Daylight Brasil**\n\nLembre-se de que em todo dia 1º do mês o cargo será redefinido e você precisará conquistar novamente sua posição como **Membro Ativo.** Continue participando e contribuindo para a comunidade para manter seu status!"
-      )
-      .setColor("#ffffff");
+      const embedAddRole = new EmbedBuilder()
+        .setDescription(
+          "Parabéns! Você alcançou o cargo de **Membro Ativo** em nossa comunidade **Dead by Daylight Brasil**\n\nLembre-se de que em todo dia 1º do mês o cargo será redefinido e você precisará conquistar novamente sua posição como **Membro Ativo.** Continue participando e contribuindo para a comunidade para manter seu status!"
+        )
+        .setColor("#ffffff");
 
-    // Enviando a mensagem embedAddRole por privado
-    client.users.send(userId, { embeds: [embedAddRole] });
+      // Enviando a mensagem embedAddRole por privado
+      await client.users.send(userId, { embeds: [embedAddRole] });
+    } catch {}
   }
 });
