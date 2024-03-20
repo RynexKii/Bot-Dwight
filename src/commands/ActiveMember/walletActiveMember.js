@@ -10,7 +10,7 @@ const database = {
 };
 
 module.exports = {
-  data: new SlashCommandBuilder().setName("carteira").setDescription("Consulte o saldo disponível na sua carteira de Servidor"),
+  data: new SlashCommandBuilder().setName("bloods").setDescription("Consulte o seu saldo de Bloods 🩸"),
 
   async execute(interaction) {
     // Pega o ID do usuário que esta interagindo com o comando
@@ -23,11 +23,16 @@ module.exports = {
     const userIcon = interaction.user.displayAvatarURL();
 
     // Pega os pontos do usuário que interagiu com o comando na tabela de memberPoints
-    const getPointsDatabase = await (await database.activeMember.tableAsync("memberPoints")).get(`${userId}.points`);
+    let getPointsDatabase = await (await database.activeMember.tableAsync("memberPoints")).get(`${userId}.points`);
+
+    // Caso o valor retornado seja undefined ou null ele troca o valor por 0
+    if (getPointsDatabase === undefined || getPointsDatabase === null) {
+      getPointsDatabase = 0;
+    }
 
     const embedWallet = new EmbedBuilder()
-      .setAuthor({ name: `${userName} - Carteira`, iconURL: userIcon })
-      .setDescription(`* Saldo \`\`ﾠ${getPointsDatabase} Blood 🩸\`\``)
+      .setAuthor({ name: `${userName}`, iconURL: userIcon })
+      .setDescription(`* Saldo \`\`ﾠ${getPointsDatabase} Bloods 🩸\`\``)
       .setColor("#ffffff")
       .setFooter({ text: "Dead by Daylight - Brasil ©", iconURL: "https://i.imgur.com/CRuULKd.png" });
 
