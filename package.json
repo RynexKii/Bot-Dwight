@@ -12,7 +12,6 @@
   "license": "ISC",
   "dependencies": {
     "better-sqlite3": "^9.4.1",
-    "cron": "^3.1.6",
     "discord.js": "^14.14.1",
     "libsodium-wrappers": "^0.7.13",
     "quick.db": "^9.1.7"
