@@ -4,9 +4,9 @@ const { join } = require("path");
 
 const rootdir = process.cwd(); // Pega a pasta atual do arquivo principal que ta sendo executado
 
-// Instanciando a o arquivo activeMember do banco de dados e pegando a tabela memberPoints
+// Instanciando a o arquivo activeMember do banco de dados e pegando a tabela memberBloods
 const database = {
-  activeMember: new QuickDB({ table: "memberPoints", filePath: join(rootdir, "database/activeMember.sqlite") }),
+  activeMember: new QuickDB({ table: "memberBloods", filePath: join(rootdir, "database/activeMember.sqlite") }),
 };
 
 module.exports = {
@@ -22,17 +22,17 @@ module.exports = {
     // Pega a URL do avatar do usuário
     const userIcon = interaction.user.displayAvatarURL();
 
-    // Pega os pontos do usuário que interagiu com o comando na tabela de memberPoints
-    let getPointsDatabase = await (await database.activeMember.tableAsync("memberPoints")).get(`${userId}.points`);
+    // Pega os pontos do usuário que interagiu com o comando na tabela de memberBloods
+    let getBloodsDatabase = await (await database.activeMember.tableAsync("memberBloods")).get(`${userId}.bloods`);
 
     // Caso o valor retornado seja undefined ou null ele troca o valor por 0
-    if (getPointsDatabase === undefined || getPointsDatabase === null) {
-      getPointsDatabase = 0;
+    if (getBloodsDatabase === undefined || getBloodsDatabase === null) {
+      getBloodsDatabase = 0;
     }
 
     const embedWallet = new EmbedBuilder()
       .setAuthor({ name: `${userName}`, iconURL: userIcon })
-      .setDescription(`* Saldo \`\`ﾠ${getPointsDatabase} Bloods 🩸\`\``)
+      .setDescription(`* Saldo \`\`ﾠ${getBloodsDatabase} Bloods 🩸\`\``)
       .setColor("#ffffff")
       .setFooter({ text: "Dead by Daylight - Brasil ©", iconURL: "https://i.imgur.com/CRuULKd.png" });
 
