@@ -11,6 +11,10 @@ const database = {
   activeMember: new QuickDB({ table: "activeMemberDuration", filePath: join(rootdir, "database/activeMember.sqlite") }),
 };
 
+// Essas 2 variável é para o sistema de Cooldown
+const cooldown = [];
+let timestampNow;
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("loja")
@@ -24,6 +28,23 @@ module.exports = {
     ),
 
   async execute(interaction) {
+    // Coloca um Cooldown de 60 segundos no comando e responde com uma mensagem
+    const timeSeconds = 60 * 1000;
+
+    if (cooldown.includes(interaction.user.id))
+      return await interaction.reply({
+        content: `<:waiting:1221553835697504276> Você poderá executar esse comando novamente <t:${timestampNow}:R>.`,
+        ephemeral: true,
+      });
+
+    cooldown.push(interaction.user.id);
+    setTimeout(() => {
+      cooldown.shift();
+    }, timeSeconds);
+
+    timestampNow = Math.round(+new Date() / 1000) + 60;
+    // Aqui termina o sistema de Cooldown
+
     // Pegando o ID do usuário que está enviando o comando
     const userId = interaction.user.id;
 
