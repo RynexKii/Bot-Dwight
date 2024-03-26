@@ -90,18 +90,13 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
     }, 60 * 1000);
   }
 
-  // Função para parar o setInterval da função addIntervalBloods()
-  function stopIntervalBloods() {
-    clearInterval(intervalID);
-  }
-
   // Caso o usuário for um bot ele simplesmente não adiciona pontos parando aqui a execução
   if (oldState.member.user.bot) return;
 
   // Verifica se o getChannelsId não esta vazio
   if (getChannelsId) {
     if (getChannelsId.includes(newState.channelId)) {
-      stopIntervalBloods();
+      clearInterval(intervalID);
       return;
     }
 
@@ -119,7 +114,7 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
   // Caso o canal novo seja null ele chama a função addVoiceBloods()
   // newState entrar > id / sair > null
   if (newState.channelId === null) {
-    stopIntervalBloods();
+    clearInterval(intervalID);
   } // Saiu do canal
 });
 
@@ -187,4 +182,47 @@ client.on("ready", async () => {
   setInterval(() => {
     removeActiveMember();
   }, 60 * 1000);
+});
+
+client.on("ready", async () => {
+  // Criado um Array vazio para armazenar o novo Array que será criado
+  let newArrayMembers = [];
+
+  // Criado um Array para armazenar a posição de cada usuário
+  let rankPosition = 0;
+
+  async function setMembers() {
+    // Pegando todos os usuários que possui Bloods na database
+    const allMembersDB = await (await database.activeMember.tableAsync("memberBloods")).all();
+
+    // Chamando as 2 variáveis novamente para limpar elas
+    newArrayMembers = [];
+    rankPosition = 0;
+
+    // Fazendo um for para passar pelo Array allMembersDB e criar um novo Array com as informações e armazenando no newArrayMembers
+    for (let index = 0; index < allMembersDB.length; index++) {
+      const element = allMembersDB[index];
+
+      if (element.value.bloods > 0) {
+        newArrayMembers.push({ userID: element.id, userBloods: element.value.bloods, userRank: 0 });
+        newArrayMembers.sort((a, b) => b.userBloods - a.userBloods);
+      }
+    }
+
+    // Percorendo o novo Array criado para poder adicionar a variável de rankPosition que servirá para adicionar os números para cada usuário em ordem
+    newArrayMembers.forEach((element) => {
+      element.userRank = rankPosition += 1;
+    });
+
+    // Por fim adicionando o newArrayMembers com todos os novos dados em uma nova tabela na database chamada memberBloodsRanks
+    await (await database.activeMember.tableAsync("memberBloodsRanks")).set(guildId, newArrayMembers);
+  }
+
+  // Chamando a função assim que iniciar o bot
+  setMembers();
+
+  // Depois chamando a função em um loop de 5 minutos para ser atualizado a cada 5 minutos
+  setInterval(() => {
+    setMembers();
+  }, 300 * 1000);
 });
