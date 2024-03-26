@@ -10,9 +10,8 @@ const database = {
   activeMember: new QuickDB({ table: "memberBloods", filePath: join(rootdir, "database/activeMember.sqlite") }),
 };
 
-// Essas 2 variável é para o sistema de Cooldown
+// Usada para armazenar o userID e o userTimestamp do usuário
 const cooldown = [];
-let timestampNow;
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -22,24 +21,25 @@ module.exports = {
     .addSubcommand((subcommand) => subcommand.setName("rank").setDescription("Veja os tops rank do servidor.")),
 
   async execute(interaction) {
-    if (interaction.options.getSubcommand() === "ver") {
-      // Coloca um Cooldown de 60 segundos no comando e responde com uma mensagem
-      const timeSeconds = 60 * 1000;
+    // Coloca um Cooldown de 60 segundos no comando e responde com uma mensagem
+    for (let index = 0; index < cooldown.length; index++) {
+      const element = cooldown[index];
 
-      if (cooldown.includes(interaction.user.id))
+      if (element.userID === interaction.user.id) {
         return await interaction.reply({
-          content: `<:waiting:1221553835697504276> Você poderá executar esse comando novamente <t:${timestampNow}:R>.`,
+          content: `<:waiting:1221553835697504276> Você poderá executar esse comando novamente <t:${element.userTimestamp}:R>.`,
           ephemeral: true,
         });
+      }
+    }
 
-      cooldown.push(interaction.user.id);
-      setTimeout(() => {
-        cooldown.shift();
-      }, timeSeconds);
+    cooldown.push({ userID: interaction.user.id, userTimestamp: Math.round(+new Date() / 1000) + 60 });
 
-      timestampNow = Math.round(+new Date() / 1000) + 60;
-      // Aqui termina o sistema de Cooldown
-
+    setTimeout(() => {
+      cooldown.shift();
+    }, 60 * 1000);
+    // Aqui termina o sistema de Cooldown
+    if (interaction.options.getSubcommand() === "ver") {
       // Pega o ID do usuário que esta interagindo com o comando
       const userId = interaction.user.id;
 
@@ -61,7 +61,7 @@ module.exports = {
       // Procura o ID do usuário que fez o comando e retorna o número do rank dela
       getMembersRank.forEach((element) => {
         if (element.userID === userId) {
-          userRank = element.userRank;
+          userRank = `${element.userRank}º`;
         }
       });
 
@@ -85,7 +85,7 @@ module.exports = {
         .setAuthor({ name: `${userName}`, iconURL: userIcon })
         .setDescription(
           `Saldo \`ﾠ${getBloodsDatabase} Bloods 🩸\`
-        Rank \`ﾠ${userRank}º / ${getMembersRank.length}ﾠ\`
+        Rank \`ﾠ${userRank} / ${getMembersRank.length}ﾠ\`
         `
         )
         .setColor("#2b2d31");
@@ -101,6 +101,17 @@ module.exports = {
       let rankThree = "3º Ninguém";
       let rankFour = "4º Ninguém";
       let rankFive = "5º Ninguém";
+
+      // Caso o canal for diferente do canal sendCommandsChannel ele retorna uma mensagem e para aqui
+      if (interaction.channel.id !== sendCommandsChannel) {
+        const embedBlockChannel = new EmbedBuilder()
+          .setDescription(
+            `### <:error:1212567041094058057> [Error] Por favor, utilize apenas o canal <#${sendCommandsChannel}> para enviar este comando!`
+          )
+          .setColor("#ff0000");
+
+        return await interaction.reply({ embeds: [embedBlockChannel], ephemeral: true });
+      }
 
       // Verifica o getMembersRank um por um até o 5 para colocar na variável
       if (getMembersRank[0]) {
