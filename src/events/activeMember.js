@@ -12,9 +12,6 @@ const database = {
   activeMember: new QuickDB({ table: "activeMemberDuration", filePath: join(rootdir, "database/activeMember.sqlite") }),
 };
 
-// Variável criada para armazenar o ID do setInterval
-let intervalID;
-
 // Função feita para gerar um número inteiro dentre um mínimo e máximo
 function getRandomNumber(min, max) {
   const minCeiled = Math.ceil(min);
@@ -24,8 +21,13 @@ function getRandomNumber(min, max) {
 
 // Sempre que o bot for iniciado ele vai verificar se o membro registrado na database (timestamp) esta ainda conectando em um canal de voz
 client.on("ready", async (interaction) => {
+  // Criado para armazenar todos os membros do servidor
   const allMembersGuild = [];
 
+  // Pegando a data atual
+  const getDateNow = new Date();
+
+  // Usada para pegar o servidor que está sendo passado na guildId
   const guild = await interaction.guilds.cache.get(guildId);
 
   const res = await guild.members.fetch();
@@ -38,17 +40,20 @@ client.on("ready", async (interaction) => {
 
     const getMemberVoice = (await guild.members.fetch(membersId)).voice.channelId;
 
+    const getMemberDate = await (await database.activeMember.tableAsync("memberDate")).get(membersId);
+
     const memberHasConnected = guild.channels.cache.has(getMemberVoice);
 
-    // Função para adicionar os Bloods no usuário
-    async function addBloodsDatabase() {
-      await (await database.activeMember.tableAsync("memberBloods")).add(`${membersId}.bloods`, getRandomNumber(1, 2));
+    async function addDateDatabase() {
+      await (await database.activeMember.tableAsync("memberDate")).set(`${membersId}.date`, getDateNow);
     }
 
     if (memberHasConnected === true) {
-      intervalID = setInterval(() => {
-        addBloodsDatabase();
-      }, 60 * 1000);
+      const getMemberDate = await (await database.activeMember.tableAsync("memberDate")).get(membersId);
+
+      if (!getMemberDate) {
+        addDateDatabase();
+      }
     }
   }
 });
@@ -78,43 +83,68 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
   // Pegando os ID's dos canais que esta registrado na database
   const getChannelsId = await (await database.activeMember.tableAsync("channelsID")).get("allChannels");
 
+  // Pegando a data atual
+  const getDateNow = new Date();
+
   // Função para adicionar os Bloods no usuário
-  async function addBloodsDatabase() {
-    await (await database.activeMember.tableAsync("memberBloods")).add(`${userId}.bloods`, getRandomNumber(1, 2));
+  async function addBloodsDatabase(minutes) {
+    await (await database.activeMember.tableAsync("memberBloods")).add(`${userId}.bloods`, minutes * getRandomNumber(1, 2));
   }
 
-  // Função que adiciona um setInterval de 60 segundos na função addBloodsDatabase()
-  function addIntervalBloods() {
-    intervalID = setInterval(() => {
-      addBloodsDatabase();
-    }, 60 * 1000);
+  // Função para adicionar a data em que o usuário entrou no canal
+  async function addDateDatabase() {
+    await (await database.activeMember.tableAsync("memberDate")).set(`${userId}.date`, getDateNow);
   }
 
-  // Caso o usuário for um bot ele simplesmente não adiciona pontos parando aqui a execução
+  // Função usada para remover a data que o usuário entrou no canal
+  async function removeDateDatabase() {
+    await (await database.activeMember.tableAsync("memberDate")).delete(userId);
+  }
+
+  // Caso o usuário for um bot ele retorna aqui impedindo o resto da execução
   if (oldState.member.user.bot) return;
 
   // Verifica se o getChannelsId não esta vazio
   if (getChannelsId) {
     if (getChannelsId.includes(newState.channelId)) {
-      clearInterval(intervalID);
+      const getDateDatebase = await (await database.activeMember.tableAsync("memberDate")).get(`${userId}.date`);
+
+      const minutesConnected = Math.floor(Math.abs(getDateNow - new Date(getDateDatebase)) / (1000 * 60));
+
+      if (minutesConnected > 0) {
+        addBloodsDatabase(minutesConnected);
+        removeDateDatabase();
+      }
       return;
     }
+  }
 
-    if (getChannelsId.includes(oldState.channelId)) {
-      addIntervalBloods();
-    }
+  if (getChannelsId.includes(oldState.channelId) && newState.channelId !== null) {
+    addDateDatabase();
   }
 
   // Caso o canal antigo seja null ele chama a função addVoiceTimestamp()
   // oldState entrar > null / sair > id
   if (oldState.channelId === null) {
-    addIntervalBloods();
+    addDateDatabase();
   } // Entrou no canal
 
   // Caso o canal novo seja null ele chama a função addVoiceBloods()
   // newState entrar > id / sair > null
   if (newState.channelId === null) {
-    clearInterval(intervalID);
+    const getDateDatebase = await (await database.activeMember.tableAsync("memberDate")).get(`${userId}.date`);
+
+    const minutesConnected = Math.floor(Math.abs(getDateNow - new Date(getDateDatebase)) / (1000 * 60));
+
+    if (getChannelsId.includes(oldState.channelId)) {
+      removeDateDatabase();
+      return;
+    }
+
+    if (minutesConnected > 0) {
+      addBloodsDatabase(minutesConnected);
+      removeDateDatabase();
+    }
   } // Saiu do canal
 });
 
