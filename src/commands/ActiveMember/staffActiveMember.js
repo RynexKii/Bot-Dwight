@@ -308,6 +308,26 @@ module.exports = {
 
         await interaction.reply({ embeds: [embedSuccessReset], ephemeral: true });
       } else if (interaction.options.getSubcommand() === "ver") {
+        const getMemberIDOption = interaction.options._hoistedOptions[0].value;
+
+        const getMemberBloods = await (await database.activeMember.tableAsync("memberBloods")).get(`${getMemberIDOption}.bloods`);
+
+        // Caso tente enviar Bloods para um bot ele para aqui e retorna uma mensagem
+        if (interaction.guild.members.cache.get(getMemberIDOption).user.bot) {
+          const embedViewBloodsBot = new EmbedBuilder()
+            .setDescription("### <:error:1212567041094058057> [Error] Desculpe, você não pode ver os `ﾠBloods 🩸` de um bot.")
+            .setColor("#ff0000");
+
+          return await interaction.reply({ embeds: [embedViewBloodsBot], ephemeral: true });
+        }
+
+        if (getMemberBloods) {
+          const embed = new EmbedBuilder()
+            .setDescription(`### Esse usuário <@${getMemberIDOption}> possui  \`ﾠ${getMemberBloods} Bloods 🩸\`.`)
+            .setColor("#ff0000");
+
+          await interaction.reply({ embeds: [embed], ephemeral: true });
+        }
       }
     }
   },
